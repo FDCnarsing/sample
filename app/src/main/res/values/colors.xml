@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+        <color name="colorPrimary">#001e3b</color>
+        <color name="colorPrimaryDark">#001e3b</color>
+        <color name="colorPrimaryLoading">#002644</color>
+        <color name="colorAccent">#f1890e</color>
+        <color name="colorAccentDark">#e36600</color>
+        <color name="colorAccentLight">#ffa328</color>
+
+        <color name="colorPrimary_translucent">#88001e3b</color>
+        <color name="common_transparent_background">#00000000</color>
+
+        <color name="common_white">#ffffff</color>
+        <color name="common_white_smoke">#F1F0F0</color>
+        <color name="common_super_light_gray">#E2E2E2</color>
+        <color name="common_light_gray">#cccccc</color>
+        <color name="common_gray">#aaaaaa</color>
+        <color name="common_darker_gray">#888888</color>
+        <color name="common_black">#444444</color>
+
+        <color name="common_olive_green">#5A9B3F</color>
+
+        <color name="common_white_disable">#80ffffff</color>
+        <color name="common_black_disable">#80444444</color>
+
+        <color name="common_blue">#4285f4</color>
+        <color name="common_dark_blue">#0B41A0</color>
+        <color name="common_green">#20c480</color>
+        <color name="common_orange">#ef870c</color>
+        <color name="common_orange_translucent">#80ef870c</color>
+        <color name="light_blue">#7AA3DA</color>
+
+        <color name="common_red">#F44336</color>
+
+        <color name="background_gray">#e4e4e4</color>
+        <color name="background_light_gray">#f0f0f0</color>
+        <color name="background_black_translucent_dark">#AA000000</color>
+        <color name="background_black_translucent_dark_chat">#00000000</color>
+        <color name="background_black_translucent">#66000000</color>
+        <color name="background_white_translucent">#80FFFFFF</color>
+        <color name="background_reservation_selected">#FFECB3</color>
+        <color name="background_recommended_textbook">#fffcee</color>
+        <color name="background_caption">#EEEEEE</color>
+        <color name="background_versant_start">#FFF7DE</color>
+        <color name="background_orange">#fff4e8</color>
+
+
+        <color name="state_online">#0bcaff</color>
+        <color name="state_prepare">#fcc916</color>
+        <color name="state_lesson">#f0295d</color>
+        <color name="state_offline">#aaaaaa</color>
+
+        <color name="button_white">#ffffff</color>
+        <color name="button_red">#ef295e</color>
+        <color name="button_navy">#aa001e3b</color>
+        <color name="button_light_green">#24c8a9</color>
+
+        <color name="button_white_push">#ffffff</color>
+        <color name="button_red_push">#ef295e</color>
+        <color name="button_navy_push">#aa34526f</color>
+        <color name="button_cyan_push">#49B2EF</color>
+        <color name="button_light_green_push">#25d6b8</color>
+        <color name="button_light_teal_push">#2B9BA3</color>
+
+        <color name="text_caption">#303030</color>
+        <color name="text_chat_time">#444444</color>
+        <color name="text_chat_system">#00e676</color>
+        <color name="text_chat_teacher">#ffeca8</color>
+
+        <color name="text_review_system_trouble">#df5656</color>
+        <color name="text_review_system_ok">#3aabd2</color>
+
+        <color name="text_versant_result_bad">#fe434c</color>
+        <color name="text_versant_result_good">#09cda8</color>
+
+        <color name="textbook_level_1_on">#9ccc65</color>
+        <color name="textbook_level_2_on">#c1d851</color>
+        <color name="textbook_level_3_on">#d6d954</color>
+        <color name="textbook_level_4_on">#eee455</color>
+        <color name="textbook_level_5_on">#efd33d</color>
+        <color name="textbook_level_6_on">#f2c01d</color>
+        <color name="textbook_level_7_on">#f8b524</color>
+        <color name="textbook_level_8_on">#f8a01e</color>
+        <color name="textbook_level_9_on">#f98620</color>
+        <color name="textbook_level_10_on">#fe6c3e</color>
+
+        <color name="lesson_video_bg">#303030</color>
+
+        <color name="tab_item_active">#eb830e</color>
+        <color name="tab_item_inactive">#484848</color>
+
+        <color name="discount_info">#e06666</color>
+
+        <color name="help_text">#555555</color>
+
+        <color name="other_twitter">#1da1f2</color>
+
+        <color name="frame_halloween">#a133e2</color>
+
+        <color name="transition_background">#33000000</color>
+
+        <color name="line_app_color">#00B900</color>
+
+        <color name="colorPrimary_gradation_1">#3c84c5</color>
+        <color name="colorPrimary_gradation_2">#072846</color>
+
+
+        <color name="background_black_translucent_push">#AA000000</color>
+
+        <color name="background_video">#000000</color>
+
+        <color name="button_red_play">#EE0000</color>
+
+        <color name="category_tab_01">#E84B3C</color>
+        <color name="category_tab_02">#F19B13</color>
+        <color name="category_tab_03">#2EC971</color>
+        <color name="category_tab_04">#3395D9</color>
+        <color name="category_tab_05">#9957B4</color>
+
+        <color name="main_tab_selected">#f1890e</color>
+        <color name="main_tab_unselected">#cccccc</color>
+
+        <color name="ic_button_favorite">#fbd606</color>
+        <color name="button_lesson_chatbot">#19C098</color>
+        <color name="bg_for_maintenance">#092846</color>
+        <color name="walkthrough_dialog_title">#092846</color>
+
+        <color name="background_message_new">#daedff</color>
+        <color name="background_message_new_old">#80daedff</color>
+        <color name="background_system_chat_new">#f4f5f8</color>
+        <color name="background_system_chat_old">#80f4f5f8</color>
+        <color name="background_message_received_new">#ffedd8</color>
+        <color name="background_message_received_new_old">#80ffedd8</color>
+        <color name="background_message_received_comment">#edac55</color>
+        <color name="background_message_received_comment_old">#80edac55</color>
+        <color name="background_message_send_comment">#45A0F6</color>
+        <color name="background_message_send_comment_old">#8045A0F6</color>
+        <color name="bgcolor_delete_button">#f0890d</color>
+
+
+
+
+        <color name="com_facebook_button_background_color_focused_disabled">#3C5A99</color>
+        <color name="com_facebook_button_background_color_focused">#3C5A99</color>
+        <color name="com_facebook_button_border_color_focused">#3C5A99</color>
+
+        <color name="selected_appreciation_background">#609e46</color>
+        <color name="search_filter_label_color">#003E5A</color>
+        <color name="common_pink">#EE47C5</color>
+        <color name="common_skyblue">#DAECFF</color>
+        <color name="common_peach">#FFEED8</color>
+        <color name="search_highlight_color">#fbcf7d</color>
+
+        <color name="menu_profile_edit">#3C88F7</color>
+        <color name="monthly_diagnosis_chart_total_score">#D51717</color>
+        <color name="monthly_diagnosis_chart_vocabulary">#1D7CDB</color>
+        <color name="monthly_diagnosis_chart_grammar">#31BDC9</color>
+        <color name="monthly_diagnosis_chart_fluency">#F89016</color>
+        <color name="monthly_diagnosis_chart_pronunciation">#2A8315</color>
+        <color name="monthly_diagnosis_chart_level_text">#FBE191</color>
+        <color name="monthly_diagnosis_chart_level_daily_bg">#0A2846</color>
+        <color name="monthly_diagnosis_chart_level_business_bg">#950F30</color>
+
+        <!--    NJ-63-->
+        <color name="lesson_start_activity">#B3B3B3</color>
+        <color name="lesson_start_seekbar">#6B6B6B</color>
+        <color name="lesson_start_button_bg_blue">#3778F1</color>
+        <color name="lesson_actionbar_menu_button">#4A4A4A</color>
+        <color name="lesson_actionbar_exit_button">#EA3323</color>
+        <color name="lesson_menu_dialog">#292929</color>
+        <color name="lesson_menu_contents">#191919</color>
+        <color name="lesson_menu_wordbook_search">#323232</color>
+        <color name="lesson_bg_chat_fragment">#CEDFFF</color>
+        <color name="textbook_level_lesson">#f98620</color>
+
+        <!--    NJ-63-->
+
+
+</resources>
