@@ -26,6 +26,29 @@ public class MainActivity extends AppCompatActivity {
         mbold = findViewById(R.id.chat_button_bold);
         mstrike = findViewById(R.id.chat_button_strike);
         edittext = findViewById(R.id.chat_editText_message);
+        edittext.setOnStyleChangedListener(new CustomTextStyleEditTextView.onStyleChangedListener() {
+            @Override
+            public void onStyleChangedUponBackspace(int prevStyleFlag, int newStyleFlag) {
+                // clear button checks
+                for (int i = 0; i < btn.length; i++) {
+                    btn[i] = findViewById(btn_id[i]);
+                    btn[i].setImageDrawable(null);
+                }
+
+                if ((newStyleFlag & CustomTextStyleEditTextView.STYLE_COLOR_BLUE) == CustomTextStyleEditTextView.STYLE_COLOR_BLUE) {
+                    setFocus(btn_unfocus, btn[1]);
+                }
+
+                if ((newStyleFlag & CustomTextStyleEditTextView.STYLE_COLOR_RED) == CustomTextStyleEditTextView.STYLE_COLOR_RED) {
+                    setFocus(btn_unfocus, btn[2]);
+                }
+
+                if ((newStyleFlag & CustomTextStyleEditTextView.STYLE_COLOR_BLACK) == CustomTextStyleEditTextView.STYLE_COLOR_BLACK) {
+                    setFocus(btn_unfocus, btn[0]);
+                }
+            }
+        });
+
         DecorationButtonListener decorationButtonListener = new DecorationButtonListener();
         mbold.setOnClickListener(decorationButtonListener);
         mstrike.setOnClickListener(decorationButtonListener);

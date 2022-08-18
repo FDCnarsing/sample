@@ -73,78 +73,97 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
      * @param text
      */
     private void applyTextStyle(CharSequence text, int lengthBefore, int lengthAfter) {
-        boolean focussed = hasFocus();
-        String addedText = "";
-        boolean isBackSpaced = lengthBefore > lengthAfter;
-        String newText = "";
+        try {
+            boolean focussed = hasFocus();
+            String addedText = "";
+            boolean isBackSpaced = lengthBefore > lengthAfter;
+            String newText = "";
 
-        // clear focus to disable text watcher
-        if (focussed) {
-            clearFocus();
-        }
-
-        if (isBackSpaced) {
-            if (mTextMap != null && mTextMap.size() > 0) {
-                // backspace is triggered
-                // check for change in style
-                // check text map for style mappings
-                int removedCharFlag = mTextMap.containsKey(mTextMap.size()-1) ? mTextMap.get(mTextMap.size()-1) : 0; // get the latest char flags on the list before removing
-                mTextMap.remove(mTextMap.size()-1); // remove latest char on textmap cause backspace is triggered
-
-                mIsFlagChanged = true;
-                int prevFlag = 0;
-                mPrevTextHtml = "";
-
-                // construct text html again
-                for(Map.Entry<Integer, Integer> entry : mTextMap.entrySet()) {
-                    int key = entry.getKey();
-                    int flags = entry.getValue();
-
-                    mIsFlagChanged = prevFlag != flags;
-
-                    newText += processStyleTextStyle(key == 0 ? flags : prevFlag , flags) + text.charAt(key);
-
-                    prevFlag = flags;
-                }
-
-                mStyleFlag = prevFlag;
-                mPrevFlag = prevFlag;
-
+            if (text.length() == 0) {
                 if (mOnStyleChangedListener != null) {
-                    mOnStyleChangedListener.onStyleChangedUponBackspace(removedCharFlag, prevFlag);
+                    mOnStyleChangedListener.onStyleChangedUponBackspace(mPrevFlag, 0);
                 }
+
+                mPrevTextHtml = "";
+                mPrevFlag = 0;
+                mStyleFlag = 0;
+                mPrevText = "";
+                mTextMap.clear();
+
+                requestFocus();
+
+                return;
             }
 
-        } else {
+            // clear focus to disable text watcher
+            if (focussed) {
+                clearFocus();
+            }
 
-            if (!mPrevText.isEmpty()) {
-                String[] textSplit = text.toString().split(mPrevText);
+            if (isBackSpaced) {
+                if (mTextMap != null && mTextMap.size() > 0) {
+                    // backspace is triggered
+                    // check for change in style
+                    // check text map for style mappings
+                    int removedCharFlag = mTextMap.containsKey(mTextMap.size()-1) ? mTextMap.get(mTextMap.size()-1) : 0; // get the latest char flags on the list before removing
+                    mTextMap.remove(mTextMap.size()-1); // remove latest char on textmap cause backspace is triggered
 
-                if (textSplit.length >= 2) {
-                    addedText = textSplit[1];
+                    mIsFlagChanged = true;
+                    int prevFlag = 0;
+                    mPrevTextHtml = "";
+
+                    // construct text html again
+                    for(Map.Entry<Integer, Integer> entry : mTextMap.entrySet()) {
+                        int key = entry.getKey();
+                        int flags = entry.getValue();
+
+                        mIsFlagChanged = prevFlag != flags;
+
+                        newText += processStyleTextStyle(key == 0 ? flags : prevFlag , flags) + text.charAt(key);
+
+                        prevFlag = flags;
+                    }
+
+                    mStyleFlag = prevFlag;
+                    mPrevFlag = prevFlag;
+
+                    if (mOnStyleChangedListener != null) {
+                        mOnStyleChangedListener.onStyleChangedUponBackspace(removedCharFlag, prevFlag);
+                    }
                 }
+
             } else {
-                addedText = text.toString();
+
+                if (!mPrevText.isEmpty()) {
+                    addedText = (text.charAt(text.length() - 1) + "");
+                } else {
+                    addedText = text.toString();
+                }
+
+                mTextMap.put(text.length() - 1, mStyleFlag); // add to textmap
+
+                newText = processStyleTextStyle() + "" + addedText;
             }
 
-            mTextMap.put(text.length() - 1, mStyleFlag); // add to textmap
+            setText(Html.fromHtml(mPrevTextHtml +"" +newText));
 
-            newText = processStyleTextStyle() + "" + addedText;
-        }
+            // add cursor back to the end of edittext
+            setSelection(getText().length());
 
-        setText(Html.fromHtml(mPrevTextHtml +"" +newText));
+            // enable back focus
+            if (focussed) {
+                requestFocus();
+            }
 
-        // add cursor back to the end of edittext
-        setSelection(getText().length());
+            mIsFlagChanged = false;
+            mPrevTextHtml += newText;
+            mPrevText = Jsoup.parse(mPrevTextHtml).text();
 
-        // enable back focus
-        if (focussed) {
+        } catch (Exception e) {
             requestFocus();
+            e.printStackTrace();
         }
 
-        mIsFlagChanged = false;
-        mPrevTextHtml += newText;
-        mPrevText = Jsoup.parse(mPrevTextHtml).text();
     }
 
     private String processStyleTextStyle() {
@@ -158,21 +177,29 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private String processStyleTextStyle(int prevFlag, int styleFlag) {
 
         // flag array
-        int[] flags = {
-//                STYLE_STRIKETHROUGH, STYLE_BOLD, STYLE_ITALIC,
+        int[] flags = {STYLE_STRIKETHROUGH, STYLE_BOLD, STYLE_ITALIC,
                 STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED};
 
         String newText = "";
+
+        if (prevFlag != styleFlag) {
+            // there is a change in falgs
+            // close styles that are not used
+            for (int i = 0; i < flags.length; i++) {
+
+                int flag = flags[i];
+
+                if ((prevFlag & flag) == flag && (styleFlag & flag) != flag) {
+                    // previous flag has particular style flag through but is removed on the current flag
+                    newText += equivHtmlTag(flag, true);
+                }
+            }
+        }
 
         // iterate through flag list
         for (int i = 0; i < flags.length; i++) {
 
             int flag = flags[i];
-
-            if ((prevFlag & flag) == flag && (styleFlag & flag) != flag) {
-                // previous flag has particular style flag through but is removed on the current flag
-                newText += equivHtmlTag(flag, true);
-            }
 
             if (mIsFlagChanged && (styleFlag & flag) == flag && (prevFlag & flag) == flag) {
                 // previous flags has the particular style flag and current flags has no particular style flag
@@ -196,12 +223,12 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
      */
     private String equivHtmlTag(int styleFlag, boolean isClose) {
         switch (styleFlag) {
-//            case STYLE_BOLD:
-//                return !isClose ? "<b>" : "</b>";
-//            case STYLE_ITALIC:
-//                return !isClose ? "<i>" : "</i>";
-//            case STYLE_STRIKETHROUGH:
-//                return !isClose ? "<s>" : "</s>";
+            case STYLE_BOLD:
+                return !isClose ? "<b>" : "</b>";
+            case STYLE_ITALIC:
+                return !isClose ? "<i>" : "</i>";
+            case STYLE_STRIKETHROUGH:
+                return !isClose ? "<s>" : "</s>";
             case STYLE_COLOR_BLUE:
                 return !isClose ? "<font color ='#0000ff'>" : "</font>";
             case STYLE_COLOR_BLACK:
@@ -215,7 +242,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
     @Override
     protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
-        if (hasFocus() && text.length() > 0) {
+        if (hasFocus()) {
             applyTextStyle(text, lengthBefore, lengthAfter);
             return;
         }
