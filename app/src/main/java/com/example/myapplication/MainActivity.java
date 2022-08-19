@@ -81,13 +81,6 @@ public class MainActivity extends AppCompatActivity {
 //            }
         });
 
-//        edittext.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                edittext.clicked();
-//            }
-//        });
-
         DecorationButtonListener decorationButtonListener = new DecorationButtonListener();
         mbold.setOnClickListener(decorationButtonListener);
         mstrike.setOnClickListener(decorationButtonListener);
@@ -105,20 +98,31 @@ public class MainActivity extends AppCompatActivity {
                 WriteCustomButton button = (WriteCustomButton) view;
                 if (button.getId() == R.id.chat_button_bold) {
                     button.switchCheckedState();
-                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_BOLD);
+                    if (button.getCheckedState()) {
+                        edittext.addStyleFlag(CustomTextStyleEditTextView.STYLE_BOLD);
+                    } else {
+                        // remove bold
+                        edittext.removeStyleFlag(CustomTextStyleEditTextView.STYLE_BOLD);
+                    }
+
                 } else if (button.getId() == R.id.chat_button_strike) {
                     button.switchCheckedState();
-                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_STRIKETHROUGH);
+                    if (button.getCheckedState()) {
+                        edittext.addStyleFlag(CustomTextStyleEditTextView.STYLE_STRIKETHROUGH);
+                    } else {
+                        // remove bold
+                        edittext.removeStyleFlag(CustomTextStyleEditTextView.STYLE_STRIKETHROUGH);
+                    }
                 } else if (button.getId() ==R.id.btn0) {
-                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_COLOR_BLACK);
+                    edittext.addStyleFlag(CustomTextStyleEditTextView.STYLE_COLOR_BLACK);
                     setFocus(btn_unfocus, btn[0]);
                 }
                 else if (button.getId() ==R.id.btn1){
-                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_COLOR_BLUE);
+                    edittext.addStyleFlag(CustomTextStyleEditTextView.STYLE_COLOR_BLUE);
                     setFocus(btn_unfocus, btn[1]);
 
                 } else if (button.getId() == R.id.btn2){
-                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_COLOR_RED);
+                    edittext.addStyleFlag(CustomTextStyleEditTextView.STYLE_COLOR_RED);
                     setFocus(btn_unfocus, btn[2]);
                 }
                 if (button.getCheckedState()) {

@@ -3,29 +3,19 @@ package com.example.myapplication;
 import android.content.Context;
 import android.text.Html;
 import android.util.AttributeSet;
-import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import org.jsoup.Jsoup;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class CustomTextStyleEditTextView extends AppCompatEditText {
 
     public interface onStyleChangedListener{
         void onStyleChangedUponBackspace(int prevStyleFlag, int newStyleFlag);
-//        void onCheckStyleOnClick(int prevStyleFlag, int newStyleFlag);
-
     }
-//    public interface onClickTextChangedListener{
-//        void onCheckStyleOnClick(int prevStyleFlag, int newStyleFlag);
-//    }
 
     public final static int STYLE_STRIKETHROUGH = 1;
     public final static int STYLE_BOLD = 2;
@@ -34,7 +24,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     public final static int STYLE_COLOR_BLACK = 16;
     public final static int STYLE_COLOR_RED = 32;
 
-
     private int mStyleFlag = 0;
     private int mPrevFlag = 0;
     private String mPrevTextHtml = "";
@@ -42,10 +31,10 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private boolean mIsFlagChanged;
     private HashMap<Integer, Integer> mTextMap;
     private onStyleChangedListener mOnStyleChangedListener;
-//    private onClickTextChangedListener mOnClickTextChangedListener;
-
-    boolean isOnclicked = false;
-
+    private int[] mFlags = {STYLE_STRIKETHROUGH, STYLE_BOLD, STYLE_ITALIC,
+            STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED};
+    private int[] oneStyleFlags = {STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED}; // flags that can't be set to multipl
+    private boolean mStyleFirstSet = true;
     public CustomTextStyleEditTextView(Context context) {
         super(context);
         init();
@@ -65,23 +54,52 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         mTextMap = new HashMap<>();
     }
 
+    public int getCurrentStyleFlag() {
+        return mStyleFlag;
+    }
+
+    public boolean addStyleFlag(int flag) {
+        if (hasMultipleStyleFlags(flag)) {
+            // multiple flag detected can't add
+            return false;
+        }
+
+        if (isNonMultipleStyleFlag(flag)) {
+            // check if added flag is not for multiple style
+            // e.g colors can be set to one color only, so remove previous set text color
+            mPrevFlag = mStyleFlag; // set the current style flag to previous first
+            clearNonMultipleStyleFlag();
+        }
+
+        setTextStyle(mStyleFlag | flag, true);
+        return true;
+    }
+
+    public boolean removeStyleFlag(int flag) {
+        if (hasMultipleStyleFlags(flag)) {
+            // multiple flag detected can't add
+            return false;
+        }
+
+        setTextStyle(mStyleFlag & (~ flag), false);
+        return true;
+    }
+
     /**
      * Set text flag
      * @param flag
      */
-    public void setTextStyle(int flag) {
+    public void setTextStyle(int flag, boolean isAdded) {
         if (flag == mStyleFlag) {
             // if new style is equivalent to current style, return
             return;
         }
 
-        mIsFlagChanged = true;
+        if (!isAdded) {
+            mPrevFlag = mStyleFlag == 0 ? 0 : mStyleFlag; // set previous flag
+        }
 
-        mPrevFlag = mStyleFlag == 0 ? flag : mStyleFlag; // set previous flag
         mStyleFlag = flag; // set new flag
-    }
-    public void clicked (){
-        applyTextStyle(getText(), 0, 0);
     }
 
     /**
@@ -93,7 +111,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             boolean focussed = hasFocus();
             String addedText = "";
             boolean isBackSpaced = lengthBefore > lengthAfter;
-            int positioon = getSelectionStart();
             String newText = "";
 
             if (text.length() == 0) {
@@ -125,7 +142,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                     int removedCharFlag = mTextMap.containsKey(mTextMap.size()-1) ? mTextMap.get(mTextMap.size()-1) : 0; // get the latest char flags on the list before removing
                     mTextMap.remove(mTextMap.size()-1); // remove latest char on textmap cause backspace is triggered
 
-                    mIsFlagChanged = true;
                     int prevFlag = 0;
                     mPrevTextHtml = "";
 
@@ -134,9 +150,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                         int key = entry.getKey();
                         int flags = entry.getValue();
 
-                        mIsFlagChanged = prevFlag != flags;
-
-                        newText += processStyleTextStyle(key == 0 ? flags : prevFlag , flags) + text.charAt(key);
+                        newText += processStyleTextStyle(prevFlag, flags) + text.charAt(key);
 
                         prevFlag = flags;
                     }
@@ -149,45 +163,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                     }
                 }
 
-            }
-//            else if (isOnclicked){
-//            else if (mTextMap.size() != 0 && mTextMap.size() > positioon && !mTextMap.get(mTextMap.size()-1).equals(mTextMap.get(positioon))){
-//                    isOnclicked = true;
-//
-//                if (mTextMap != null && mTextMap.size() > 0) {
-//                    // backspace is triggered
-//                    // check for change in style
-//                    // check text map for style mappings
-//                    int removedCharFlag = mTextMap.containsKey(positioon) ? mTextMap.get(positioon) : 0; // get the latest char flags on the list before removing
-////                    mTextMap.remove(mTextMap.size()-1); // remove latest char on textmap cause backspace is triggered
-//
-//                    mIsFlagChanged = true;
-//                    int prevFlag = 0;
-//                    mPrevTextHtml = "";
-//
-//                    // construct text html again
-//                    for(Map.Entry<Integer, Integer> entry : mTextMap.entrySet()) {
-//                        int key = entry.getKey();
-//                        int flags = entry.getValue();
-//
-//                        mIsFlagChanged = prevFlag != flags;
-//
-//                        newText += processStyleTextStyle(key == 0 ? flags : prevFlag , flags) + text.charAt(key);
-//
-//                        prevFlag = flags;
-//                    }
-//
-//                    mStyleFlag = prevFlag;
-//                    mPrevFlag = prevFlag;
-//
-//                    if (mOnStyleChangedListener != null) {
-//                        mOnStyleChangedListener.onCheckStyleOnClick(removedCharFlag, prevFlag);
-//                    }
-//                }
-//            }
-
-
-            else {
+            } else {
 
                 if (!mPrevText.isEmpty()) {
                     addedText = text.subSequence(mPrevText.length(), text.length()) + "";
@@ -212,13 +188,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             setText(Html.fromHtml(mPrevTextHtml +"" +newText));
 
             // add cursor back to the end of edittext
-//            if (!isOnclicked){
-                setSelection(getText().length());
-//            }
-//            else
-//            {
-//                setSelection(positioon);
-//            }
+            setSelection(getText().length());
 
             // enable back focus
             if (focussed) {
@@ -228,6 +198,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             mIsFlagChanged = false;
             mPrevTextHtml += newText;
             mPrevText = Jsoup.parse(mPrevTextHtml).text();
+            mPrevFlag = mStyleFlag;
 
         } catch (Exception e) {
             requestFocus();
@@ -246,39 +217,43 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
      */
     private String processStyleTextStyle(int prevFlag, int styleFlag) {
 
-        // flag array
-        int[] flags = {STYLE_STRIKETHROUGH, STYLE_BOLD, STYLE_ITALIC,
-                STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED};
+        boolean hasNonMultipleStyleFlg = false;
 
         String newText = "";
 
         if (prevFlag != styleFlag) {
             // there is a change in falgs
             // close styles that are not used
-            for (int i = 0; i < flags.length; i++) {
+            for (int i = 0; i < mFlags.length; i++) {
 
-                int flag = flags[i];
+                int flag = mFlags[i];
 
                 if ((prevFlag & flag) == flag && (styleFlag & flag) != flag) {
                     // previous flag has particular style flag through but is removed on the current flag
+                    newText += equivHtmlTag(flag, true);
+                }
+
+                if ((prevFlag & flag) == flag && isNonMultipleStyleFlag(flag)) {
+                    hasNonMultipleStyleFlg = true;
                     newText += equivHtmlTag(flag, true);
                 }
             }
         }
 
         // iterate through flag list
-        for (int i = 0; i < flags.length; i++) {
+        for (int i = 0; i < mFlags.length; i++) {
 
-            int flag = flags[i];
+            int flag = mFlags[i];
 
-            if (mIsFlagChanged && (styleFlag & flag) == flag && (prevFlag & flag) == flag) {
-                // previous flags has the particular style flag and current flags has no particular style flag
-                newText += equivHtmlTag(flag, false);
+            if ((styleFlag & flag) == flag && (prevFlag & flag) == flag) {
+                // no changes on current and previous styles
+                // do nothing
+                if (isNonMultipleStyleFlag(flag) && hasNonMultipleStyleFlg) {
+                    newText += equivHtmlTag(flag, false);
+                }
             } else if ((styleFlag & flag) == flag && (prevFlag & flag) != flag){
                 // previous flags has the particular style flag and current flags has no particular style flag
                 newText += equivHtmlTag(flag, false);
-            } else if ((styleFlag & flag) == flag && (prevFlag & flag) == flag) {
-                // no changes on the text style
             }
         }
 
@@ -319,20 +294,45 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
         super.onTextChanged(text, start, lengthBefore, lengthAfter);
     }
-//
-//    @Override
-//    public void setOnClickListener(@Nullable OnClickListener l) {
-//        if (callOnClick()) {
-//            applyTextStyle(getText(), 0, 0);
-//        }
-//        super.setOnClickListener(l);
-//    }
 
     public void setOnStyleChangedListener(onStyleChangedListener onStyleChangedListener) {
         mOnStyleChangedListener = onStyleChangedListener;
     }
-//    public void onClickTextChangedListener(onClickTextChangedListener onClickTextChangedListener) {
-//        mOnClickTextChangedListener = onClickTextChangedListener;
-//    }
+
+    public boolean isNonMultipleStyleFlag(int flag) {
+        return flag == STYLE_COLOR_BLUE || flag == STYLE_COLOR_RED || flag == STYLE_COLOR_BLACK;
+    }
+
+    public boolean hasMultipleStyleFlags(int flags) {
+        int count=0;
+
+        for (int i = 0; i < mFlags.length; i++) {
+            int flag = mFlags[i];
+
+            if ((flags & flag) == flag) {
+                count++;
+            }
+
+            if (count > 1) {
+                // flags consist of multiple flag
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void clearNonMultipleStyleFlag() {
+        for (int i = 0; i < mFlags.length; i++) {
+            int flag = mFlags[i];
+
+            if (isNonMultipleStyleFlag(flag)) {
+                // remove from current style
+                mStyleFlag = (mStyleFlag & (~ flag));
+            }
+        }
+    }
+
+
 }
 
