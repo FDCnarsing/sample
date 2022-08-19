@@ -135,12 +135,21 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             } else {
 
                 if (!mPrevText.isEmpty()) {
-                    addedText = (text.charAt(text.length() - 1) + "");
+                    addedText = text.subSequence(mPrevText.length(), text.length()) + "";
                 } else {
                     addedText = text.toString();
                 }
 
-                mTextMap.put(text.length() - 1, mStyleFlag); // add to textmap
+                if (addedText.length() > 1) {
+                    // addedText is greater than 1, occurs when a paste happens
+                    int pos = mPrevText.length();
+                    for (int i = 0; i < addedText.length(); i++){
+                        mTextMap.put(pos, mStyleFlag); // add to textmap
+                        pos++;
+                    }
+                } else {
+                    mTextMap.put(text.length() - 1, mStyleFlag); // add to textmap
+                }
 
                 newText = processStyleTextStyle() + "" + addedText;
             }
