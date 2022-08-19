@@ -335,3 +335,4 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 //        mOnClickTextChangedListener = onClickTextChangedListener;
 //    }
 }
+
