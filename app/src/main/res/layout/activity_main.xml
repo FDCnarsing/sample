@@ -58,7 +58,7 @@
                 android:layout_gravity="center"
                 android:scaleType="center"
                 android:background="@color/common_white"
-                android:src="@drawable/ic_strikethrough"
+                android:src="@drawable/ic_strike"
                 android:foreground="?android:attr/selectableItemBackground"
                 />
             <com.example.myapplication.WriteCustomButton

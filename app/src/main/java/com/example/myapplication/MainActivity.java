@@ -81,12 +81,12 @@ public class MainActivity extends AppCompatActivity {
 //            }
         });
 
-        edittext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                edittext.clicked();
-            }
-        });
+//        edittext.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                edittext.clicked();
+//            }
+//        });
 
         DecorationButtonListener decorationButtonListener = new DecorationButtonListener();
         mbold.setOnClickListener(decorationButtonListener);
@@ -124,11 +124,11 @@ public class MainActivity extends AppCompatActivity {
                 if (button.getCheckedState()) {
                     if (button.getId() == R.id.chat_button_bold) {
                         button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
-//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold_selected));
+                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold_selected));
                     }
                     if (button.getId() == R.id.chat_button_strike) {
                         button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
-//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike_selected));
+                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike_selected));
                     }
                 }
 //                else if (!button.getCheckedState() && firstClick) {
@@ -145,11 +145,11 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     if (button.getId() == R.id.chat_button_bold) {
                         button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
-//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold));
+                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold));
                     }
                     if (button.getId() == R.id.chat_button_strike) {
                         button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
-//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike));
+                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike));
                     }
                 }
             }
