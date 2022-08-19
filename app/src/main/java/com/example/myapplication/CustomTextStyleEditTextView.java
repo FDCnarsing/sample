@@ -3,19 +3,29 @@ package com.example.myapplication;
 import android.content.Context;
 import android.text.Html;
 import android.util.AttributeSet;
+import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import org.jsoup.Jsoup;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class CustomTextStyleEditTextView extends AppCompatEditText {
 
     public interface onStyleChangedListener{
         void onStyleChangedUponBackspace(int prevStyleFlag, int newStyleFlag);
+//        void onCheckStyleOnClick(int prevStyleFlag, int newStyleFlag);
+
     }
+//    public interface onClickTextChangedListener{
+//        void onCheckStyleOnClick(int prevStyleFlag, int newStyleFlag);
+//    }
 
     public final static int STYLE_STRIKETHROUGH = 1;
     public final static int STYLE_BOLD = 2;
@@ -32,6 +42,9 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private boolean mIsFlagChanged;
     private HashMap<Integer, Integer> mTextMap;
     private onStyleChangedListener mOnStyleChangedListener;
+//    private onClickTextChangedListener mOnClickTextChangedListener;
+
+    boolean isOnclicked = false;
 
     public CustomTextStyleEditTextView(Context context) {
         super(context);
@@ -67,6 +80,9 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         mPrevFlag = mStyleFlag == 0 ? flag : mStyleFlag; // set previous flag
         mStyleFlag = flag; // set new flag
     }
+    public void clicked (){
+        applyTextStyle(getText(), 0, 0);
+    }
 
     /**
      * Apply style to the text
@@ -77,6 +93,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             boolean focussed = hasFocus();
             String addedText = "";
             boolean isBackSpaced = lengthBefore > lengthAfter;
+            int positioon = getSelectionStart();
             String newText = "";
 
             if (text.length() == 0) {
@@ -132,7 +149,45 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                     }
                 }
 
-            } else {
+            }
+//            else if (isOnclicked){
+//            else if (mTextMap.size() != 0 && mTextMap.size() > positioon && !mTextMap.get(mTextMap.size()-1).equals(mTextMap.get(positioon))){
+//                    isOnclicked = true;
+//
+//                if (mTextMap != null && mTextMap.size() > 0) {
+//                    // backspace is triggered
+//                    // check for change in style
+//                    // check text map for style mappings
+//                    int removedCharFlag = mTextMap.containsKey(positioon) ? mTextMap.get(positioon) : 0; // get the latest char flags on the list before removing
+////                    mTextMap.remove(mTextMap.size()-1); // remove latest char on textmap cause backspace is triggered
+//
+//                    mIsFlagChanged = true;
+//                    int prevFlag = 0;
+//                    mPrevTextHtml = "";
+//
+//                    // construct text html again
+//                    for(Map.Entry<Integer, Integer> entry : mTextMap.entrySet()) {
+//                        int key = entry.getKey();
+//                        int flags = entry.getValue();
+//
+//                        mIsFlagChanged = prevFlag != flags;
+//
+//                        newText += processStyleTextStyle(key == 0 ? flags : prevFlag , flags) + text.charAt(key);
+//
+//                        prevFlag = flags;
+//                    }
+//
+//                    mStyleFlag = prevFlag;
+//                    mPrevFlag = prevFlag;
+//
+//                    if (mOnStyleChangedListener != null) {
+//                        mOnStyleChangedListener.onCheckStyleOnClick(removedCharFlag, prevFlag);
+//                    }
+//                }
+//            }
+
+
+            else {
 
                 if (!mPrevText.isEmpty()) {
                     addedText = (text.charAt(text.length() - 1) + "");
@@ -148,7 +203,13 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             setText(Html.fromHtml(mPrevTextHtml +"" +newText));
 
             // add cursor back to the end of edittext
-            setSelection(getText().length());
+//            if (!isOnclicked){
+                setSelection(getText().length());
+//            }
+//            else
+//            {
+//                setSelection(positioon);
+//            }
 
             // enable back focus
             if (focussed) {
@@ -249,8 +310,19 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
         super.onTextChanged(text, start, lengthBefore, lengthAfter);
     }
+//
+//    @Override
+//    public void setOnClickListener(@Nullable OnClickListener l) {
+//        if (callOnClick()) {
+//            applyTextStyle(getText(), 0, 0);
+//        }
+//        super.setOnClickListener(l);
+//    }
 
     public void setOnStyleChangedListener(onStyleChangedListener onStyleChangedListener) {
         mOnStyleChangedListener = onStyleChangedListener;
     }
+//    public void onClickTextChangedListener(onClickTextChangedListener onClickTextChangedListener) {
+//        mOnClickTextChangedListener = onClickTextChangedListener;
+//    }
 }

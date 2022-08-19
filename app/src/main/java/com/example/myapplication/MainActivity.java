@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,6 +47,44 @@ public class MainActivity extends AppCompatActivity {
                 if ((newStyleFlag & CustomTextStyleEditTextView.STYLE_COLOR_BLACK) == CustomTextStyleEditTextView.STYLE_COLOR_BLACK) {
                     setFocus(btn_unfocus, btn[0]);
                 }
+                if ((newStyleFlag & CustomTextStyleEditTextView.STYLE_BOLD) == CustomTextStyleEditTextView.STYLE_BOLD) {
+                    mbold.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
+                }else{
+                    mbold.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
+                }
+                if ((newStyleFlag & CustomTextStyleEditTextView.STYLE_STRIKETHROUGH) == CustomTextStyleEditTextView.STYLE_STRIKETHROUGH) {
+                    mstrike.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
+                }
+                else{
+                    mstrike.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
+                }
+            }
+//
+//            @Override
+//            public void onCheckStyleOnClick(int prevStyleFlag, int newStyleFlag) {
+//                for (int i = 0; i < btn.length; i++) {
+//                    btn[i] = findViewById(btn_id[i]);
+//                    btn[i].setImageDrawable(null);
+//                }
+//
+//                if ((prevStyleFlag & CustomTextStyleEditTextView.STYLE_COLOR_BLUE) == CustomTextStyleEditTextView.STYLE_COLOR_BLUE) {
+//                    setFocus(btn_unfocus, btn[1]);
+//                }
+//
+//                if ((prevStyleFlag & CustomTextStyleEditTextView.STYLE_COLOR_RED) == CustomTextStyleEditTextView.STYLE_COLOR_RED) {
+//                    setFocus(btn_unfocus, btn[2]);
+//                }
+//
+//                if ((prevStyleFlag & CustomTextStyleEditTextView.STYLE_COLOR_BLACK) == CustomTextStyleEditTextView.STYLE_COLOR_BLACK) {
+//                    setFocus(btn_unfocus, btn[0]);
+//                }
+//            }
+        });
+
+        edittext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                edittext.clicked();
             }
         });
 
@@ -64,16 +103,13 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             if (view instanceof WriteCustomButton) {
                 WriteCustomButton button = (WriteCustomButton) view;
-//                if (button.getId() == R.id.chat_button_bold) {
-//                    button.switchCheckedState();
-//                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_BOLD);
-//
-//                } else if (button.getId() == R.id.chat_button_strike) {
-//                    button.switchCheckedState();
-//                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_STRIKETHROUGH);
-//                }
-//                else
-                if (button.getId() ==R.id.btn0) {
+                if (button.getId() == R.id.chat_button_bold) {
+                    button.switchCheckedState();
+                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_BOLD);
+                } else if (button.getId() == R.id.chat_button_strike) {
+                    button.switchCheckedState();
+                    edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_STRIKETHROUGH);
+                } else if (button.getId() ==R.id.btn0) {
                     edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_COLOR_BLACK);
                     setFocus(btn_unfocus, btn[0]);
                 }
@@ -85,16 +121,16 @@ public class MainActivity extends AppCompatActivity {
                     edittext.setTextStyle(CustomTextStyleEditTextView.STYLE_COLOR_RED);
                     setFocus(btn_unfocus, btn[2]);
                 }
-//                if (button.getCheckedState()) {
-//                    if (button.getId() == R.id.chat_button_bold) {
-//                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
-////                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold_selected));
-//                    }
-//                    if (button.getId() == R.id.chat_button_strike) {
-//                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
-////                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike_selected));
-//                    }
-//                }
+                if (button.getCheckedState()) {
+                    if (button.getId() == R.id.chat_button_bold) {
+                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
+//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold_selected));
+                    }
+                    if (button.getId() == R.id.chat_button_strike) {
+                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_darker_gray));
+//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike_selected));
+                    }
+                }
 //                else if (!button.getCheckedState() && firstClick) {
 //                    if (button.getId() == R.id.chat_button_bold) {
 //                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
@@ -106,16 +142,16 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                    firstClick = false;
 //                }
-//                else {
-//                    if (button.getId() == R.id.chat_button_bold) {
-//                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
-////                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold));
-//                    }
-//                    if (button.getId() == R.id.chat_button_strike) {
-//                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
-////                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike));
-//                    }
-//                }
+                else {
+                    if (button.getId() == R.id.chat_button_bold) {
+                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
+//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_bold));
+                    }
+                    if (button.getId() == R.id.chat_button_strike) {
+                        button.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.common_white));
+//                        button.setImageDrawable(getResources().getDrawable(R.drawable.ic_strike));
+                    }
+                }
             }
         }
     }
