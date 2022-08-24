@@ -31,8 +31,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private boolean mIsFlagChanged;
     private HashMap<Integer, Integer> mTextMap;
     private onStyleChangedListener mOnStyleChangedListener;
-    private int[] mFlags = {STYLE_STRIKETHROUGH, STYLE_BOLD, STYLE_ITALIC,
-            STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED};
+    private int[] mFlags = {STYLE_COLOR_RED, STYLE_COLOR_BLACK, STYLE_COLOR_BLUE, STYLE_STRIKETHROUGH, STYLE_ITALIC,STYLE_BOLD};
     private int[] oneStyleFlags = {STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED}; // flags that can't be set to multipl
     private boolean mStyleFirstSet = true;
     public CustomTextStyleEditTextView(Context context) {
@@ -112,6 +111,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             String addedText = "";
             boolean isBackSpaced = lengthBefore > lengthAfter;
             String newText = "";
+            String htmlText = Html.toHtml(getText());
 
             if (text.length() == 0) {
                 if (mOnStyleChangedListener != null) {
@@ -150,7 +150,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                         int key = entry.getKey();
                         int flags = entry.getValue();
 
-                        newText += processStyleTextStyle(prevFlag, flags) + text.charAt(key);
+                        newText += processStyleTextStyle(String.valueOf(text.charAt(key)), prevFlag, flags);
 
                         prevFlag = flags;
                     }
@@ -164,7 +164,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 }
 
             } else {
-
                 if (!mPrevText.isEmpty()) {
                     addedText = text.subSequence(mPrevText.length(), text.length()) + "";
                 } else {
@@ -173,16 +172,90 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
                 if (addedText.length() > 1) {
                     // addedText is greater than 1, occurs when a paste happens
-                    int pos = mPrevText.length();
-                    for (int i = 0; i < addedText.length(); i++){
-                        mTextMap.put(pos, mStyleFlag); // add to textmap
-                        pos++;
+                    mTextMap.clear(); // clear textmap
+                    boolean isOpenHtml = false;
+                    String tag = "";
+                    mPrevTextHtml = "";
+                    mPrevFlag = 0;
+                    mStyleFlag = 0;
+                    int lastOpenFlag = 0;
+                    int textPos = 0;
+                    boolean isAdd = false;
+                    int currFlag = 0;
+                    boolean isHtml = false;
+
+                    for (int i = 0; i < htmlText.length(); i++) {
+                        String charaString = String.valueOf(htmlText.charAt(i));
+                        if (charaString.equals("<")) {
+                            isOpenHtml = true;
+                            tag = ""; // reset tag
+                            tag += charaString;
+                            continue;
+                        }
+
+                        if (charaString.equals(">")) {
+                            isOpenHtml = false;
+                            tag += charaString;
+                        }
+
+                        if (isOpenHtml) {
+                            tag += charaString;
+                            continue;
+                        }
+
+                        if (!tag.isEmpty()) {
+                            // loop if tag is not empty
+                            for (int x = 0; x < mFlags.length; x++) {
+
+                                int flag = mFlags[x];
+
+                                if (tag.equals(equivHtmlTag(flag, false))) {
+                                    currFlag = mPrevFlag;
+                                    addStyleFlag(flag);
+                                    lastOpenFlag = flag;
+                                    isAdd = !charaString.contains(">");
+                                    mPrevFlag =  currFlag;
+                                    isHtml = true;
+                                } else if (tag.equals(equivHtmlTag(flag, true)) && lastOpenFlag == flag) {
+                                    currFlag = mPrevFlag;
+                                    removeStyleFlag(flag);
+                                    isAdd = !charaString.contains(">");
+                                    mPrevFlag = currFlag;
+                                    isHtml = true;
+                                }
+                            }
+                        } else {
+                            mPrevFlag = mStyleFlag;
+                        }
+
+                        if (!isAdd) {
+                            continue;
+                        }
+
+                        if (!tag.contains("</")) {
+                            // not a closing tag
+                            newText += processStyleTextStyle(charaString, mPrevFlag, mStyleFlag);
+                            mTextMap.put(textPos, mStyleFlag);
+                            textPos++;
+                            tag="";
+                        } else {
+                            newText += charaString;
+                        }
+                    }
+
+                    if (!isHtml) {
+                        // text doesn't contain any style
+                        int pos = mPrevText.length();
+                        for (int i = 0; i < addedText.length(); i++) {
+                            mTextMap.put(pos, mStyleFlag); // add to textmap
+                            pos++;
+                        }
+                        newText = processStyleTextStyle(addedText);
                     }
                 } else {
                     mTextMap.put(text.length() - 1, mStyleFlag); // add to textmap
+                    newText = processStyleTextStyle(addedText);
                 }
-
-                newText = processStyleTextStyle() + "" + addedText;
             }
 
             setText(Html.fromHtml(mPrevTextHtml +"" +newText));
@@ -207,58 +280,46 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
     }
 
-    private String processStyleTextStyle() {
-        return processStyleTextStyle(mPrevFlag, mStyleFlag);
+    private String processStyleTextStyle(String text) {
+        return processStyleTextStyle(text, mPrevFlag, mStyleFlag);
     }
 
     /**
      * Iterate through flags and check the styles that is set then apply to text
      * @return String
      */
-    private String processStyleTextStyle(int prevFlag, int styleFlag) {
+    private String processStyleTextStyle(String text, int prevFlag, int styleFlag) {
+        String tags = "";
+        boolean isClosed = false;
 
-        boolean hasNonMultipleStyleFlg = false;
-
-        String newText = "";
-
-        if (prevFlag != styleFlag) {
-            // there is a change in falgs
-            // close styles that are not used
-            for (int i = 0; i < mFlags.length; i++) {
-
-                int flag = mFlags[i];
-
-                if ((prevFlag & flag) == flag && (styleFlag & flag) != flag) {
-                    // previous flag has particular style flag through but is removed on the current flag
-                    newText += equivHtmlTag(flag, true);
-                }
-
-                if ((prevFlag & flag) == flag && isNonMultipleStyleFlag(flag)) {
-                    hasNonMultipleStyleFlg = true;
-                    newText += equivHtmlTag(flag, true);
-                }
-            }
-        }
-
-        // iterate through flag list
+        // iterate through flag list for closing
         for (int i = 0; i < mFlags.length; i++) {
 
             int flag = mFlags[i];
 
-            if ((styleFlag & flag) == flag && (prevFlag & flag) == flag) {
-                // no changes on current and previous styles
-                // do nothing
-                if (isNonMultipleStyleFlag(flag) && hasNonMultipleStyleFlg) {
-                    newText += equivHtmlTag(flag, false);
-                }
-            } else if ((styleFlag & flag) == flag && (prevFlag & flag) != flag){
-                // previous flags has the particular style flag and current flags has no particular style flag
-                newText += equivHtmlTag(flag, false);
+            if (prevFlag != styleFlag && (prevFlag & flag) == flag) {
+                tags = tags + "" + equivHtmlTag(flag, true);
+                isClosed = true;
             }
         }
 
-        return newText;
+        // iterate through flag list for opening
+        for (int i = 0; i < mFlags.length; i++) {
+
+            int flag = mFlags[i];
+
+            if ((styleFlag & flag) == flag && (prevFlag & flag) == flag && !isClosed) {
+                // no changes on current and previous styles
+                // do nothing
+            } else if ((styleFlag & flag) == flag) {
+                // previous flags has the particular style flag and current flags has no particular style flag
+                tags = tags + "" + equivHtmlTag(flag, false);
+            }
+        }
+
+        return String.format("%1$s%2$s", tags, text);
     }
+
 
     /**
      * Get equivalent HTML tag for different styles
@@ -273,13 +334,13 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             case STYLE_ITALIC:
                 return !isClose ? "<i>" : "</i>";
             case STYLE_STRIKETHROUGH:
-                return !isClose ? "<s>" : "</s>";
+                return !isClose ? "<span style=\"text-decoration:line-through;\">" : "</span>";
             case STYLE_COLOR_BLUE:
-                return !isClose ? "<font color ='#0000ff'>" : "</font>";
+                return !isClose ? "<span style=\"color:#0000FF;\">" : "</span>";
             case STYLE_COLOR_BLACK:
-                return !isClose ? "<font color='#000000'>" : "</font>";
+                return !isClose ? "<span style=\"color:#000000;\">" : "</span>";
             case STYLE_COLOR_RED:
-                return !isClose ? "<font color='#ff0000'>" : "</font>";
+                return !isClose ? "<span style=\"color:#FF0000;\">" : "</span>";
             default:
                 return "";
         }
@@ -332,7 +393,5 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             }
         }
     }
-
-
 }
 
