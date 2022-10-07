@@ -39,7 +39,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private int[] mFlags = {STYLE_COLOR_RED, STYLE_COLOR_BLACK, STYLE_COLOR_BLUE, STYLE_STRIKETHROUGH, STYLE_ITALIC,STYLE_BOLD};
     private int[] oneStyleFlags = {STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED}; // flags that can't be set to multiple
     private boolean mStyleFirstSet = true;
-    private boolean isTextProcessing = false;
+    private boolean mIsTextProcessing = false;
 
     public CustomTextStyleEditTextView(Context context) {
         super(context);
@@ -121,7 +121,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             String newText = "";
             String htmlText = Html.toHtml(getText());
 
-            isTextProcessing = true;
+            mIsTextProcessing = true;
 
             if (text.length() == 0) {
                 if (mOnStyleChangedListener != null) {
@@ -137,7 +137,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                     mTextMap.clear();
                 }
 
-                isTextProcessing = false;
+                mIsTextProcessing = false;
 
                 return;
             }
@@ -159,6 +159,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                         int flags = entry.getValue();
 
                         newText += processStyleTextStyle(String.valueOf(text.charAt(key)), prevFlag, flags);
+                        newText = alterTags(newText);
 
                         prevFlag = flags;
                     }
@@ -180,7 +181,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 }
 
                 if (addedText.length() == 1) {
-                    newText =  processStyleTextStyle() + addedText;
+                    newText =  processStyleTextStyle() + alterTags(addedText);
                     mTextMap.put(text.length() - 1, mStyleFlag);
                 } else {
                     // addedText is greater than 1, occurs when a paste happens
@@ -196,7 +197,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                     int currFlag = 0;
                     boolean isHtml = false;
 
-                    htmlText = removeUnnecessaryTags(htmlText);
+                    htmlText = alterTags(htmlText);
 
                     for (int i = 0; i < htmlText.length(); i++) {
                         String charaString = String.valueOf(htmlText.charAt(i));
@@ -271,7 +272,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            isTextProcessing = false;
+            mIsTextProcessing = false;
         }
 
     }
@@ -364,7 +365,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
     @Override
     protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
-        if (!isTextProcessing) {
+        if (!mIsTextProcessing) {
             applyTextStyle(text, lengthBefore, lengthAfter);
         }
     }
@@ -411,7 +412,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         return mFlags;
     }
 
-    private String removeUnnecessaryTags(String htmlText) {
+    private String alterTags(String htmlText) {
         // remove all html tags except that contains span, b, i
         Pattern pattern = Pattern.compile("(<\\/?(?:span|b|i)[^>]*>)|<[^>]+>", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(htmlText);
@@ -426,7 +427,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
         htmlText = htmlText.replaceAll("(\r\n|\n)", "<br />"); // replace line breaks with br tag
 
-        return htmlText.trim();
+        return htmlText;
     }
 }
 
