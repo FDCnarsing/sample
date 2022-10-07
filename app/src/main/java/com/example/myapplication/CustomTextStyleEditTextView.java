@@ -159,10 +159,11 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                         int flags = entry.getValue();
 
                         newText += processStyleTextStyle(String.valueOf(text.charAt(key)), prevFlag, flags);
-                        newText = alterTags(newText);
 
                         prevFlag = flags;
                     }
+
+                    newText = alterTags(newText);
 
                     mStyleFlag = prevFlag;
                     mPrevFlag = prevFlag;
@@ -181,7 +182,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 }
 
                 if (addedText.length() == 1) {
-                    newText =  processStyleTextStyle() + alterTags(addedText);
+                    newText =  processStyleTextStyle() + alterTags(replaceSpace(addedText));
                     mTextMap.put(text.length() - 1, mStyleFlag);
                 } else {
                     // addedText is greater than 1, occurs when a paste happens
@@ -425,7 +426,13 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
         htmlText = matcher.replaceAll(""); // The substituted value will be passed to htmlText
 
-        htmlText = htmlText.replaceAll("(\r\n|\n)", "<br />"); // replace line breaks with br tag
+        htmlText = htmlText.replaceAll("(\r\n|\n)", "<br />");// replace line breaks with br tag
+
+        return htmlText;
+    }
+
+    private String replaceSpace(String htmlText) {
+        htmlText = htmlText.replaceAll(" ", "&nbsp;");
 
         return htmlText;
     }
