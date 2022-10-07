@@ -1,15 +1,20 @@
 package com.example.myapplication;
 
 import android.content.Context;
+import android.os.Handler;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 
 import androidx.appcompat.widget.AppCompatEditText;
 
-import org.jsoup.Jsoup;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CustomTextStyleEditTextView extends AppCompatEditText {
 
@@ -32,8 +37,10 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private HashMap<Integer, Integer> mTextMap;
     private onStyleChangedListener mOnStyleChangedListener;
     private int[] mFlags = {STYLE_COLOR_RED, STYLE_COLOR_BLACK, STYLE_COLOR_BLUE, STYLE_STRIKETHROUGH, STYLE_ITALIC,STYLE_BOLD};
-    private int[] oneStyleFlags = {STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED}; // flags that can't be set to multipl
+    private int[] oneStyleFlags = {STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED}; // flags that can't be set to multiple
     private boolean mStyleFirstSet = true;
+    private boolean isTextProcessing = false;
+
     public CustomTextStyleEditTextView(Context context) {
         super(context);
         init();
@@ -57,6 +64,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         return mStyleFlag;
     }
 
+    // for one flag only
     public boolean addStyleFlag(int flag) {
         if (hasMultipleStyleFlags(flag)) {
             // multiple flag detected can't add
@@ -74,6 +82,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         return true;
     }
 
+    // for one flag only
     public boolean removeStyleFlag(int flag) {
         if (hasMultipleStyleFlags(flag)) {
             // multiple flag detected can't add
@@ -85,7 +94,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     }
 
     /**
-     * Set text flag
+     * Set text multiple flags
      * @param flag
      */
     public void setTextStyle(int flag, boolean isAdded) {
@@ -107,11 +116,12 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
      */
     private void applyTextStyle(CharSequence text, int lengthBefore, int lengthAfter) {
         try {
-            boolean focussed = hasFocus();
             String addedText = "";
             boolean isBackSpaced = lengthBefore > lengthAfter;
             String newText = "";
             String htmlText = Html.toHtml(getText());
+
+            isTextProcessing = true;
 
             if (text.length() == 0) {
                 if (mOnStyleChangedListener != null) {
@@ -122,16 +132,14 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 mPrevFlag = 0;
                 mStyleFlag = 0;
                 mPrevText = "";
-                mTextMap.clear();
 
-                requestFocus();
+                if (mTextMap != null) {
+                    mTextMap.clear();
+                }
+
+                isTextProcessing = false;
 
                 return;
-            }
-
-            // clear focus to disable text watcher
-            if (focussed) {
-                clearFocus();
             }
 
             if (isBackSpaced) {
@@ -164,13 +172,17 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 }
 
             } else {
+
                 if (!mPrevText.isEmpty()) {
                     addedText = text.subSequence(mPrevText.length(), text.length()) + "";
                 } else {
                     addedText = text.toString();
                 }
 
-                if (addedText.length() > 1) {
+                if (addedText.length() == 1) {
+                    newText =  processStyleTextStyle() + addedText;
+                    mTextMap.put(text.length() - 1, mStyleFlag);
+                } else {
                     // addedText is greater than 1, occurs when a paste happens
                     mTextMap.clear(); // clear textmap
                     boolean isOpenHtml = false;
@@ -183,6 +195,8 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                     boolean isAdd = false;
                     int currFlag = 0;
                     boolean isHtml = false;
+
+                    htmlText = removeUnnecessaryTags(htmlText);
 
                     for (int i = 0; i < htmlText.length(); i++) {
                         String charaString = String.valueOf(htmlText.charAt(i));
@@ -210,22 +224,18 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                                 int flag = mFlags[x];
 
                                 if (tag.equals(equivHtmlTag(flag, false))) {
-                                    currFlag = mPrevFlag;
+                                    isAdd = !charaString.contains(">");
                                     addStyleFlag(flag);
                                     lastOpenFlag = flag;
-                                    isAdd = !charaString.contains(">");
-                                    mPrevFlag =  currFlag;
                                     isHtml = true;
                                 } else if (tag.equals(equivHtmlTag(flag, true)) && lastOpenFlag == flag) {
-                                    currFlag = mPrevFlag;
                                     removeStyleFlag(flag);
                                     isAdd = !charaString.contains(">");
-                                    mPrevFlag = currFlag;
                                     isHtml = true;
                                 }
                             }
                         } else {
-                            mPrevFlag = mStyleFlag;
+                            isAdd = !charaString.contains(">");
                         }
 
                         if (!isAdd) {
@@ -233,13 +243,9 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                         }
 
                         if (!tag.contains("</")) {
-                            // not a closing tag
-                            newText += processStyleTextStyle(charaString, mPrevFlag, mStyleFlag);
                             mTextMap.put(textPos, mStyleFlag);
                             textPos++;
                             tag="";
-                        } else {
-                            newText += charaString;
                         }
                     }
 
@@ -250,34 +256,40 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                             mTextMap.put(pos, mStyleFlag); // add to textmap
                             pos++;
                         }
-                        newText = processStyleTextStyle(addedText);
                     }
-                } else {
-                    mTextMap.put(text.length() - 1, mStyleFlag); // add to textmap
-                    newText = processStyleTextStyle(addedText);
+
+                    newText = htmlText;
                 }
             }
 
-            setText(Html.fromHtml(mPrevTextHtml +"" +newText));
-
-            // add cursor back to the end of edittext
-            setSelection(getText().length());
-
-            // enable back focus
-            if (focussed) {
-                requestFocus();
-            }
+            addText(newText, true);
 
             mIsFlagChanged = false;
             mPrevTextHtml += newText;
-            mPrevText = Jsoup.parse(mPrevTextHtml).text();
+            mPrevText = Html.fromHtml(mPrevTextHtml).toString();
             mPrevFlag = mStyleFlag;
-
         } catch (Exception e) {
-            requestFocus();
             e.printStackTrace();
+        } finally {
+            isTextProcessing = false;
         }
 
+    }
+
+    private void addText(String text, boolean isHtml) {
+
+        getText().clear();
+
+        if (isHtml) {
+            append(Html.fromHtml(mPrevTextHtml +""+text));
+            return;
+        }
+
+        append(String.format("%1$s%2$s",mPrevText, text));
+    }
+
+    private String processStyleTextStyle() {
+        return processStyleTextStyle(null, mPrevFlag, mStyleFlag);
     }
 
     private String processStyleTextStyle(String text) {
@@ -317,6 +329,10 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             }
         }
 
+        if (text == null) {
+            return tags;
+        }
+
         return String.format("%1$s%2$s", tags, text);
     }
 
@@ -348,12 +364,9 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
     @Override
     protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
-        if (hasFocus()) {
+        if (!isTextProcessing) {
             applyTextStyle(text, lengthBefore, lengthAfter);
-            return;
         }
-
-        super.onTextChanged(text, start, lengthBefore, lengthAfter);
     }
 
     public void setOnStyleChangedListener(onStyleChangedListener onStyleChangedListener) {
@@ -392,6 +405,28 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 mStyleFlag = (mStyleFlag & (~ flag));
             }
         }
+    }
+
+    public int[] getStyles() {
+        return mFlags;
+    }
+
+    private String removeUnnecessaryTags(String htmlText) {
+        // remove all html tags except that contains span, b, i
+        Pattern pattern = Pattern.compile("(<\\/?(?:span|b|i)[^>]*>)|<[^>]+>", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(htmlText);
+
+        htmlText = matcher.replaceAll("$1");  // The substituted value will be passed to htmlText
+
+        // remove all html tags except that contains img
+        pattern = Pattern.compile("<img[^>]*>", Pattern.CASE_INSENSITIVE);
+        matcher = pattern.matcher(htmlText);
+
+        htmlText = matcher.replaceAll(""); // The substituted value will be passed to htmlText
+
+        htmlText = htmlText.replaceAll("(\r\n|\n)", "<br />"); // replace line breaks with br tag
+
+        return htmlText.trim();
     }
 }
 
