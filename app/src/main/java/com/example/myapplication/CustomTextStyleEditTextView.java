@@ -182,6 +182,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 }
 
                 if (addedText.length() == 1) {
+                    mPrevFlag = getPrevStyle();
                     newText =  processStyleTextStyle() + alterTags(replaceSpace(addedText));
                     mTextMap.put(text.length() - 1, mStyleFlag);
                 } else {
@@ -288,6 +289,20 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         }
 
         append(String.format("%1$s%2$s",mPrevText, text));
+    }
+
+    private int getPrevStyle() {
+        if (mTextMap == null || mTextMap.size() <= 0) {
+            return 0;
+        }
+
+        int lastIndex = mTextMap.size()-1;
+
+        if (mTextMap.containsKey(lastIndex)) {
+            return mTextMap.get(lastIndex);
+        }
+
+        return 0;
     }
 
     private String processStyleTextStyle() {
