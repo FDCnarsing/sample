@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
 
 import androidx.appcompat.widget.AppCompatEditText;
@@ -204,7 +205,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                         getStylesFromElement(element);
                     }
 
-                    newText = htmlText;
+                    newText = removeUnecessaryTags(htmlText);
                 }
             }
 
@@ -249,7 +250,17 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             return;
         }
 
+        Editable et = getText();
+
         if (isHtml) {
+
+            // remove spans first
+            Object[] toRemoveSpans = et.getSpans(0, et.length(), ForegroundColorSpan.class);
+            for (int i = 0; i < toRemoveSpans.length; i++) {
+                et.removeSpan(toRemoveSpans[i]);
+            }
+
+            // replace text
             getText().replace(0, getText().length(), Html.fromHtml(mPrevTextHtml +""+text));
             return;
         }
