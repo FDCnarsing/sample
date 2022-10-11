@@ -33,13 +33,10 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private int mPrevFlag = 0;
     private String mPrevTextHtml = "";
     private String mPrevText = "";
-    private boolean mIsFlagChanged;
     private HashMap<Integer, Integer> mTextMap;
     private onStyleChangedListener mOnStyleChangedListener;
     private int[] mFlags = {STYLE_COLOR_RED, STYLE_COLOR_BLACK, STYLE_COLOR_BLUE, STYLE_STRIKETHROUGH, STYLE_ITALIC,STYLE_BOLD};
     private int[] oneStyleFlags = {STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED}; // flags that can't be set to multiple
-    private boolean mStyleFirstSet = true;
-    private boolean mIsTextProcessing = false;
 
     public CustomTextStyleEditTextView(Context context) {
         super(context);
@@ -58,6 +55,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
     private void init() {
         mTextMap = new HashMap<>();
+        addTextChangedListener();
     }
 
     public int getCurrentStyleFlag() {
@@ -121,8 +119,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             String newText = "";
             String htmlText = Html.toHtml(getText());
 
-            mIsTextProcessing = true;
-
             if (text.length() == 0) {
                 if (mOnStyleChangedListener != null) {
                     mOnStyleChangedListener.onStyleChangedUponBackspace(mPrevFlag, 0);
@@ -136,8 +132,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 if (mTextMap != null) {
                     mTextMap.clear();
                 }
-
-                mIsTextProcessing = false;
 
                 return;
             }
@@ -267,28 +261,27 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
             addText(newText, true);
 
-            mIsFlagChanged = false;
             mPrevTextHtml += newText;
             mPrevText = Html.fromHtml(mPrevTextHtml).toString();
             mPrevFlag = mStyleFlag;
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            mIsTextProcessing = false;
         }
 
     }
 
     private void addText(String text, boolean isHtml) {
 
-        getText().clear();
-
-        if (isHtml) {
-            append(Html.fromHtml(mPrevTextHtml +""+text));
+        if (getText() == null) {
             return;
         }
 
-        append(String.format("%1$s%2$s",mPrevText, text));
+        if (isHtml) {
+            getText().replace(0, getText().length(), Html.fromHtml(mPrevTextHtml +""+text));
+            return;
+        }
+
+        getText().replace(0, getText().length(), String.format("%1$s%2$s",mPrevText, text));
     }
 
     private int getPrevStyle() {
@@ -379,13 +372,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         }
     }
 
-    @Override
-    protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
-        if (!mIsTextProcessing) {
-            applyTextStyle(text, lengthBefore, lengthAfter);
-        }
-    }
-
     public void setOnStyleChangedListener(onStyleChangedListener onStyleChangedListener) {
         mOnStyleChangedListener = onStyleChangedListener;
     }
@@ -441,7 +427,12 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
         htmlText = matcher.replaceAll(""); // The substituted value will be passed to htmlText
 
-        htmlText = htmlText.replaceAll("(\r\n|\n)", "<br />");// replace line breaks with br tag
+        if (!htmlText.matches("[\\n\\r]+") && htmlText.endsWith("\n")) {
+            // if text is not only consist of line breaks and text ends with line breaks remove the trailing line break
+            htmlText = htmlText.substring(0, htmlText.length()-1);
+        }
+
+        htmlText = htmlText.replace("\n", "<br>");// replace line breaks with br tag
 
         return htmlText;
     }
@@ -451,5 +442,34 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
 
         return htmlText;
     }
+
+    private TextWatcher mTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            removeTextChangedListener();
+            applyTextStyle(charSequence, i1, i2);
+            addTextChangedListener();
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+
+        }
+    };
+
+    private void removeTextChangedListener() {
+        removeTextChangedListener(mTextWatcher);
+    }
+
+    private void addTextChangedListener() {
+        addTextChangedListener(mTextWatcher);
+    }
+
 }
 
