@@ -10,6 +10,12 @@ import android.util.AttributeSet;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +43,7 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     private onStyleChangedListener mOnStyleChangedListener;
     private int[] mFlags = {STYLE_COLOR_RED, STYLE_COLOR_BLACK, STYLE_COLOR_BLUE, STYLE_STRIKETHROUGH, STYLE_ITALIC,STYLE_BOLD};
     private int[] oneStyleFlags = {STYLE_COLOR_BLUE, STYLE_COLOR_BLACK, STYLE_COLOR_RED}; // flags that can't be set to multiple
+    private int mTextPos = 0;
 
     public CustomTextStyleEditTextView(Context context) {
         super(context);
@@ -182,77 +189,19 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
                 } else {
                     // addedText is greater than 1, occurs when a paste happens
                     mTextMap.clear(); // clear textmap
-                    boolean isOpenHtml = false;
-                    String tag = "";
                     mPrevTextHtml = "";
                     mPrevFlag = 0;
                     mStyleFlag = 0;
-                    int lastOpenFlag = 0;
-                    int textPos = 0;
-                    boolean isAdd = false;
-                    int currFlag = 0;
-                    boolean isHtml = false;
+                    mTextPos = 0;
 
                     htmlText = alterTags(htmlText);
 
-                    for (int i = 0; i < htmlText.length(); i++) {
-                        String charaString = String.valueOf(htmlText.charAt(i));
-                        if (charaString.equals("<")) {
-                            isOpenHtml = true;
-                            tag = ""; // reset tag
-                            tag += charaString;
-                            continue;
-                        }
+                    Document doc = Jsoup.parse(htmlText);
 
-                        if (charaString.equals(">")) {
-                            isOpenHtml = false;
-                            tag += charaString;
-                        }
+                    Elements elements = doc.body().children();
 
-                        if (isOpenHtml) {
-                            tag += charaString;
-                            continue;
-                        }
-
-                        if (!tag.isEmpty()) {
-                            // loop if tag is not empty
-                            for (int x = 0; x < mFlags.length; x++) {
-
-                                int flag = mFlags[x];
-
-                                if (tag.equals(equivHtmlTag(flag, false))) {
-                                    isAdd = !charaString.contains(">");
-                                    addStyleFlag(flag);
-                                    lastOpenFlag = flag;
-                                    isHtml = true;
-                                } else if (tag.equals(equivHtmlTag(flag, true)) && lastOpenFlag == flag) {
-                                    removeStyleFlag(flag);
-                                    isAdd = !charaString.contains(">");
-                                    isHtml = true;
-                                }
-                            }
-                        } else {
-                            isAdd = !charaString.contains(">");
-                        }
-
-                        if (!isAdd) {
-                            continue;
-                        }
-
-                        if (!tag.contains("</")) {
-                            mTextMap.put(textPos, mStyleFlag);
-                            textPos++;
-                            tag="";
-                        }
-                    }
-
-                    if (!isHtml) {
-                        // text doesn't contain any style
-                        int pos = mPrevText.length();
-                        for (int i = 0; i < addedText.length(); i++) {
-                            mTextMap.put(pos, mStyleFlag); // add to textmap
-                            pos++;
-                        }
+                    for (Element element : elements) {
+                        getStylesFromElement(element);
                     }
 
                     newText = htmlText;
@@ -268,6 +217,30 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
             e.printStackTrace();
         }
 
+    }
+
+    private void getStylesFromElement(Element element) {
+        String tag;
+        for (Node node : element.childNodes()) {
+            if (node instanceof TextNode) {
+                String textNode = ((TextNode) node).toString();
+                if(textNode.length() > 1) {
+                    for (int i = 0; i < textNode.length(); i++) {
+                        // no style
+                        mTextMap.put(mTextPos, mStyleFlag);
+                        mTextPos++;
+                    }
+                } else {
+                    mTextMap.put(mTextPos, mStyleFlag);
+                    mTextPos++;
+                }
+                mStyleFlag = 0;
+            } else if (node instanceof Element) {
+                Element element1 = (Element)node;
+                addStyleFlag(getEquivStyleFlagByElement(element1));
+                getStylesFromElement(element1);
+            }
+        }
     }
 
     private void addText(String text, boolean isHtml) {
@@ -372,6 +345,26 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         }
     }
 
+    private int getEquivStyleFlagByElement(Element element) {
+        if (element.tagName().equals("span")) {
+            if (element.attr("style").contains("text-decoration:line-through")) {
+                return STYLE_STRIKETHROUGH;
+            } else if (element.attr("style").contains("color:#0000FF;")) {
+                return STYLE_COLOR_BLUE;
+            } else if (element.attr("style").contains("color:#000000;")) {
+                return STYLE_COLOR_BLACK;
+            } else if (element.attr("style").contains("color:#FF0000;")) {
+                return STYLE_COLOR_RED;
+            }
+        } else if (element.tagName().equals("i")) {
+            return STYLE_ITALIC;
+        } else if (element.tagName().equals("b")) {
+            return STYLE_BOLD;
+        }
+
+        return 0;
+    }
+
     public void setOnStyleChangedListener(onStyleChangedListener onStyleChangedListener) {
         mOnStyleChangedListener = onStyleChangedListener;
     }
@@ -415,6 +408,17 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
     }
 
     private String alterTags(String htmlText) {
+        if (!htmlText.matches("[\\n\\r]+") && htmlText.endsWith("\n")) {
+            // if text is not only consist of line breaks and text ends with line breaks remove the trailing line break
+            htmlText = htmlText.substring(0, htmlText.length()-1);
+        }
+
+        htmlText = htmlText.replace("\n", "<br/>");// replace line breaks with br tag
+
+        return htmlText;
+    }
+
+    private String removeUnecessaryTags(String htmlText) {
         // remove all html tags except that contains span, b, i
         Pattern pattern = Pattern.compile("(<\\/?(?:span|b|i)[^>]*>)|<[^>]+>", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(htmlText);
@@ -426,14 +430,6 @@ public class CustomTextStyleEditTextView extends AppCompatEditText {
         matcher = pattern.matcher(htmlText);
 
         htmlText = matcher.replaceAll(""); // The substituted value will be passed to htmlText
-
-        if (!htmlText.matches("[\\n\\r]+") && htmlText.endsWith("\n")) {
-            // if text is not only consist of line breaks and text ends with line breaks remove the trailing line break
-            htmlText = htmlText.substring(0, htmlText.length()-1);
-        }
-
-        htmlText = htmlText.replace("\n", "<br>");// replace line breaks with br tag
-
         return htmlText;
     }
 
